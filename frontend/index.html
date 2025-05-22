@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLOCKCRAFT - Build Your World</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        height: 100%;
+        overflow-x: hidden;
+        font-family: 'Press Start 2P', cursive;
+        background: linear-gradient(
+          180deg,
+          #87ceeb 0%,
+          #98fb98 50%,
+          #8b4513 100%
+        );
+        image-rendering: pixelated;
+        cursor: none;
+      }
+
+      /* Pixelated cursor */
+      .cursor {
+        position: fixed;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(
+          45deg,
+          #8b4513 0%,
+          #8b4513 25%,
+          #d2691e 25%,
+          #d2691e 50%,
+          #8b4513 50%,
+          #8b4513 75%,
+          #d2691e 75%,
+          #d2691e 100%
+        );
+        pointer-events: none;
+        z-index: 9999;
+        image-rendering: pixelated;
+        transform: translate(-50%, -50%);
+        box-shadow: 2px 2px 0px #654321, 4px 4px 0px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Three.js container */
+      #three-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+
+      /* Clouds */
+      .cloud {
+        position: absolute;
+        background: #fff;
+        border-radius: 0;
+        opacity: 0.8;
+        animation: cloudFloat 20s linear infinite;
+        image-rendering: pixelated;
+        box-shadow: 0 0 0 4px #fff, 0 0 0 8px #f0f0f0;
+      }
+
+      @keyframes cloudFloat {
+        0% {
+          transform: translateX(-200px);
+        }
+        100% {
+          transform: translateX(calc(100vw + 200px));
+        }
+      }
+
+      /* Main content overlay */
+      .content-overlay {
+        position: relative;
+        z-index: 10;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      /* Navigation */
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 20px;
+        background: linear-gradient(
+          90deg,
+          #8b4513 0%,
+          #8b4513 20%,
+          #a0522d 20%,
+          #a0522d 40%,
+          #8b4513 40%,
+          #8b4513 60%,
+          #a0522d 60%,
+          #a0522d 80%,
+          #8b4513 80%,
+          #8b4513 100%
+        );
+        border-bottom: 8px solid #654321;
+        image-rendering: pixelated;
+      }
+
+      .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .logo {
+        font-size: 24px;
+        color: #fff;
+        text-shadow: 4px 4px 0px #000;
+        animation: logoGlow 3s ease-in-out infinite alternate;
+      }
+
+      @keyframes logoGlow {
+        0% {
+          filter: drop-shadow(0 0 8px #ffff00);
+        }
+        100% {
+          filter: drop-shadow(0 0 16px #ff6600);
+        }
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 40px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 14px;
+        text-shadow: 2px 2px 0px #000;
+        transition: all 0.3s ease;
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 2px solid transparent;
+      }
+
+      .nav-links a:hover {
+        background: #228b22;
+        border: 2px solid #32cd32;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 0px #1a6b1a;
+      }
+
+      /* Hero section */
+      .hero {
+        position: relative;
+        z-index: 10;
+      }
+
+      .hero-title {
+        font-size: 64px;
+        color: #fff;
+        margin-bottom: 20px;
+        text-shadow: 4px 4px 0px #000, 8px 8px 0px rgba(0, 0, 0, 0.5);
+        animation: blockFloat 4s ease-in-out infinite;
+        line-height: 1.2;
+      }
+
+      @keyframes blockFloat {
+        0%,
+        100% {
+          transform: translateY(0px) rotateX(0deg);
+          filter: drop-shadow(0 0 20px #ffff00);
+        }
+        50% {
+          transform: translateY(-10px) rotateX(2deg);
+          filter: drop-shadow(0 0 30px #ff6600);
+        }
+      }
+
+      .hero-subtitle {
+        font-size: 16px;
+        color: #fff;
+        margin-bottom: 40px;
+        text-shadow: 2px 2px 0px #000;
+        opacity: 0;
+        animation: fadeInUp 2s ease 1s forwards;
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+      }
+
+      .cta-button {
+        display: inline-block;
+        padding: 20px 40px;
+        background: linear-gradient(
+          45deg,
+          #228b22 0%,
+          #228b22 25%,
+          #32cd32 25%,
+          #32cd32 50%,
+          #228b22 50%,
+          #228b22 75%,
+          #32cd32 75%,
+          #32cd32 100%
+        );
+        color: #fff;
+        text-decoration: none;
+        font-size: 18px;
+        border: 4px solid #1a6b1a;
+        position: relative;
+        text-shadow: 2px 2px 0px #000;
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: fadeInUp 2s ease 1.5s forwards;
+        image-rendering: pixelated;
+      }
+
+      .cta-button:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 0px #1a6b1a, 0 12px 20px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(
+          45deg,
+          #32cd32 0%,
+          #32cd32 25%,
+          #228b22 25%,
+          #228b22 50%,
+          #32cd32 50%,
+          #32cd32 75%,
+          #228b22 75%,
+          #228b22 100%
+        );
+      }
+
+      .cta-button:active {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 0px #1a6b1a, 0 6px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Block particles */
+      .block-particle {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: #8b4513;
+        border: 2px solid #654321;
+        animation: blockFall 10s linear infinite;
+        image-rendering: pixelated;
+      }
+
+      @keyframes blockFall {
+        0% {
+          transform: translateY(-100px) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      /* Features section */
+      .features {
+        position: relative;
+        z-index: 10;
+        padding: 100px 20px;
+        background: linear-gradient(
+          90deg,
+          #228b22 0%,
+          #228b22 50%,
+          #32cd32 50%,
+          #32cd32 100%
+        );
+        border-top: 8px solid #1a6b1a;
+        border-bottom: 8px solid #1a6b1a;
+      }
+
+      .features-title {
+        text-align: center;
+        font-size: 48px;
+        color: #fff;
+        margin-bottom: 60px;
+        text-shadow: 4px 4px 0px #000;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .feature-card {
+        background: linear-gradient(
+          45deg,
+          #8b4513 0%,
+          #8b4513 25%,
+          #a0522d 25%,
+          #a0522d 50%,
+          #8b4513 50%,
+          #8b4513 75%,
+          #a0522d 75%,
+          #a0522d 100%
+        );
+        border: 4px solid #654321;
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        image-rendering: pixelated;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 0px #654321, 0 16px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .feature-icon {
+        font-size: 48px;
+        color: #ffff00;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 0px #000;
+        animation: iconBounce 2s ease-in-out infinite;
+      }
+
+      @keyframes iconBounce {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .feature-title {
+        font-size: 20px;
+        color: #fff;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 0px #000;
+      }
+
+      .feature-description {
+        color: #f0f0f0;
+        line-height: 1.6;
+        font-size: 12px;
+        text-shadow: 1px 1px 0px #000;
+      }
+
+      /* Inventory style section */
+      .inventory {
+        position: relative;
+        z-index: 10;
+        padding: 100px 20px;
+        background: #2f2f2f;
+        border-top: 8px solid #1a1a1a;
+      }
+
+      .inventory-title {
+        text-align: center;
+        font-size: 48px;
+        color: #fff;
+        margin-bottom: 60px;
+        text-shadow: 4px 4px 0px #000;
+      }
+
+      .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+        max-width: 800px;
+        margin: 0 auto;
+        background: #1a1a1a;
+        padding: 20px;
+        border: 4px solid #000;
+      }
+
+      .inventory-slot {
+        width: 120px;
+        height: 120px;
+        background: #2f2f2f;
+        border: 2px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .inventory-slot:hover {
+        background: #4a4a4a;
+        border-color: #fff;
+        transform: scale(1.1);
+        z-index: 10;
+      }
+
+      .inventory-slot::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 5px 10px;
+        font-size: 10px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .inventory-slot:hover::after {
+        opacity: 1;
+      }
+
+      /* Stats section */
+      .stats {
+        position: relative;
+        z-index: 10;
+        padding: 100px 20px;
+        background: #ff6b35;
+        border-top: 8px solid #e55528;
+      }
+
+      .stats-title {
+        text-align: center;
+        font-size: 48px;
+        color: #fff;
+        margin-bottom: 60px;
+        text-shadow: 4px 4px 0px #000;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 40px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .stat-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 4px solid #000;
+        padding: 30px 20px;
+        text-align: center;
+        position: relative;
+      }
+
+      .stat-number {
+        font-size: 48px;
+        color: #ffff00;
+        text-shadow: 3px 3px 0px #000;
+        margin-bottom: 10px;
+        animation: statGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes statGlow {
+        0% {
+          filter: drop-shadow(0 0 5px #ffff00);
+        }
+        100% {
+          filter: drop-shadow(0 0 15px #ff6600);
+        }
+      }
+
+      .stat-label {
+        color: #fff;
+        font-size: 14px;
+        text-shadow: 2px 2px 0px #000;
+      }
+
+      /* Footer */
+      .footer {
+        position: relative;
+        z-index: 10;
+        padding: 50px 20px;
+        background: #000;
+        text-align: center;
+        color: #fff;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .footer-links a {
+        color: #32cd32;
+        text-decoration: none;
+        font-size: 14px;
+        text-shadow: 2px 2px 0px #000;
+        transition: all 0.3s ease;
+      }
+
+      .footer-links a:hover {
+        color: #ffff00;
+        transform: translateY(-2px);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .nav {
+          padding: 15px;
+        }
+
+        .hero-title {
+          font-size: 32px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .features {
+          padding: 50px 15px;
+        }
+
+        .features-title,
+        .inventory-title,
+        .stats-title {
+          font-size: 24px;
+        }
+
+        .inventory-grid {
+          grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        }
+
+        .inventory-slot {
+          width: 80px;
+          height: 80px;
+          font-size: 32px;
+        }
+      }
+
+      /* Loading screen */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #2f2f2f;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        transition: opacity 1s ease;
+      }
+
+      .loading-text {
+        color: #fff;
+        font-size: 24px;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 0px #000;
+      }
+
+      .loading-bar {
+        width: 400px;
+        height: 20px;
+        background: #1a1a1a;
+        border: 2px solid #000;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .loading-fill {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          #228b22 0%,
+          #228b22 50%,
+          #32cd32 50%,
+          #32cd32 100%
+        );
+        animation: loadingProgress 3s ease-in-out forwards;
+      }
+
+      @keyframes loadingProgress {
+        0% {
+          width: 0%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
+
+      /* Day/night cycle */
+      .day-night-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 200;
+        font-size: 48px;
+        animation: dayNightCycle 20s linear infinite;
+      }
+
+      @keyframes dayNightCycle {
+        0%,
+        50% {
+          content: '☀️';
+          filter: drop-shadow(0 0 10px #ffff00);
+        }
+        51%,
+        100% {
+          content: '🌙';
+          filter: drop-shadow(0 0 10px #4169e1);
+        }
+      }
+
+      /* Health bar */
+      .health-bar {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 200;
+        display: flex;
+        gap: 5px;
+      }
+
+      .heart {
+        width: 20px;
+        height: 20px;
+        background: #ff0000;
+        position: relative;
+        transform: rotate(-45deg);
+        animation: heartbeat 2s ease-in-out infinite;
+      }
+
+      .heart:before,
+      .heart:after {
+        content: '';
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        left: 10px;
+        top: 0;
+        background: #ff0000;
+        border-radius: 10px;
+        transform: rotate(-45deg);
+        transform-origin: 0 10px;
+      }
+
+      .heart:after {
+        left: 0;
+        transform: rotate(45deg);
+        transform-origin: 10px 10px;
+      }
+
+      @keyframes heartbeat {
+        0%,
+        100% {
+          transform: rotate(-45deg) scale(1);
+        }
+        50% {
+          transform: rotate(-45deg) scale(1.1);
+        }
+      }
+
+      /* Experience bar */
+      .exp-bar {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 200;
+        width: 200px;
+      }
+
+      .exp-level {
+        color: #32cd32;
+        font-size: 14px;
+        text-shadow: 2px 2px 0px #000;
+        margin-bottom: 5px;
+      }
+
+      .exp-progress {
+        width: 100%;
+        height: 10px;
+        background: #1a1a1a;
+        border: 2px solid #000;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .exp-fill {
+        height: 100%;
+        background: #32cd32;
+        width: 75%;
+        animation: expGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes expGlow {
+        0% {
+          box-shadow: 0 0 5px #32cd32;
+        }
+        100% {
+          box-shadow: 0 0 15px #32cd32, inset 0 0 10px #32cd32;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loading-text">LOADING WORLD...</div>
+      <div class="loading-bar">
+        <div class="loading-fill"></div>
+      </div>
+    </div>
+
+    <!-- Game UI Elements -->
+    <div class="day-night-indicator">☀️</div>
+
+    <div class="health-bar">
+      <div class="heart"></div>
+      <div class="heart"></div>
+      <div class="heart"></div>
+      <div class="heart"></div>
+      <div class="heart"></div>
+    </div>
+
+    <div class="exp-bar">
+      <div class="exp-level">Level 42</div>
+      <div class="exp-progress">
+        <div class="exp-fill"></div>
+      </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Clouds -->
+    <div
+      class="cloud"
+      style="top: 10%; width: 80px; height: 40px; animation-delay: 0s"
+    ></div>
+    <div
+      class="cloud"
+      style="top: 15%; width: 120px; height: 60px; animation-delay: -5s"
+    ></div>
+    <div
+      class="cloud"
+      style="top: 8%; width: 100px; height: 50px; animation-delay: -10s"
+    ></div>
+    <div
+      class="cloud"
+      style="top: 20%; width: 90px; height: 45px; animation-delay: -15s"
+    ></div>
+
+    <!-- Three.js Container -->
+    <div id="three-container"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <div class="nav-container">
+        <div class="logo">⛏️ BLOCKCRAFT</div>
+        <ul class="nav-links">
+          <li><a href="#home">🏠 HOME</a></li>
+          <li><a href="#features">⚡ FEATURES</a></li>
+          <li><a href="#inventory">📦 INVENTORY</a></li>
+          <li><a href="#stats">📊 STATS</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="content-overlay" id="home">
+      <div class="hero">
+        <h1 class="hero-title">BUILD<br />YOUR WORLD</h1>
+        <h2 class="hero-subtitle">Craft • Explore • Survive • Create</h2>
+        <a href="#features" class="cta-button">🎮 START CRAFTING</a>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+      <h2 class="features-title">🌟 GAME FEATURES</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🌱</div>
+          <h3 class="feature-title">INFINITE WORLDS</h3>
+          <p class="feature-description">
+            Explore endless procedurally generated worlds filled with adventure
+            and mystery.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⛏️</div>
+          <h3 class="feature-title">CRAFTING SYSTEM</h3>
+          <p class="feature-description">
+            Combine materials to create tools, weapons, and structures in our
+            advanced crafting system.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏰</div>
+          <h3 class="feature-title">BUILD ANYTHING</h3>
+          <p class="feature-description">
+            From simple houses to massive castles, your imagination is the only
+            limit.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👥</div>
+          <h3 class="feature-title">MULTIPLAYER</h3>
+          <p class="feature-description">
+            Team up with friends or compete against others in our multiplayer
+            modes.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🐲</div>
+          <h3 class="feature-title">EPIC BOSSES</h3>
+          <p class="feature-description">
+            Face challenging bosses and discover rare loot in dangerous
+            dungeons.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3 class="feature-title">CUSTOMIZATION</h3>
+          <p class="feature-description">
+            Personalize your character with skins, textures, and special
+            effects.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inventory Section -->
+    <section class="inventory" id="inventory">
+      <h2 class="inventory-title">📦 YOUR INVENTORY</h2>
+      <div class="inventory-grid">
+        <div class="inventory-slot" data-tooltip="Diamond Sword">⚔️</div>
+        <div class="inventory-slot" data-tooltip="Golden Apple">🍎</div>
+        <div class="inventory-slot" data-tooltip="Iron Pickaxe">⛏️</div>
+        <div class="inventory-slot" data-tooltip="Wood Blocks">🪵</div>
+        <div class="inventory-slot" data-tooltip="Stone Blocks">🪨</div>
+        <div class="inventory-slot" data-tooltip="Redstone">🔴</div>
+        <div class="inventory-slot" data-tooltip="TNT">💣</div>
+        <div class="inventory-slot" data-tooltip="Bow">🏹</div>
+        <div class="inventory-slot" data-tooltip="Potion">🧪</div>
+        <div class="inventory-slot" data-tooltip="Diamond">💎</div>
+        <div class="inventory-slot" data-tooltip="Coal">⚫</div>
+        <div class="inventory-slot" data-tooltip="Iron Ingot">🔩</div>
+        <div class="inventory-slot" data-tooltip="Emerald">💚</div>
+        <div class="inventory-slot" data-tooltip="Wheat">🌾</div>
+        <div class="inventory-slot" data-tooltip="Bread">🍞</div>
+        <div class="inventory-slot" data-tooltip="Shield">🛡️</div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" id="stats">
+      <h2 class="stats-title">📊 GAME STATS</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="blocksPlaced">1,234,567</div>
+          <div class="stat-label">BLOCKS PLACED</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="distanceWalked">42,069</div>
+          <div class="stat-label">DISTANCE WALKED</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="monstersKilled">9,001</div>
+          <div class="stat-label">MONSTERS KILLED</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="itemsCrafted">15,678</div>
+          <div class="stat-label">ITEMS CRAFTED</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="#download">📥 Download</a>
+          <a href="#community">👥 Community</a>
+          <a href="#support">🛠️ Support</a>
+          <a href="#updates">🆕 Updates</a>
+          <a href="#mods">🔧 Mods</a>
+        </div>
+        <p style="color: #ccc; font-size: 12px; text-shadow: 1px 1px 0px #000">
+          © 2024 BLOCKCRAFT. All rights reserved. Build your dreams, one block
+          at a time.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // Custom cursor
+      const cursor = document.getElementById('cursor');
+      let mouseX = 0,
+        mouseY = 0;
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        gsap.to(cursor, {
+          x: mouseX,
+          y: mouseY,
+          duration: 0.1,
+        });
+      });
+
+      // Three.js Scene for 3D blocks
+      let scene,
+        camera,
+        renderer,
+        blocks = [];
+      let mouseXNorm = 0,
+        mouseYNorm = 0;
+
+      function initThree() {
+        scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x87ceeb, 50, 200);
+
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x87ceeb, 0);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.BasicShadowMap;
+        document
+          .getElementById('three-container')
+          .appendChild(renderer.domElement);
+
+        // Create block materials
+        const grassMaterial = new THREE.MeshLambertMaterial({
+          color: 0x32cd32,
+        });
+        const stoneMaterial = new THREE.MeshLambertMaterial({
+          color: 0x808080,
+        });
+        const dirtMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+        const diamondMaterial = new THREE.MeshLambertMaterial({
+          color: 0x00ffff,
+        });
+        const goldMaterial = new THREE.MeshLambertMaterial({ color: 0xffd700 });
+        const ironMaterial = new THREE.MeshLambertMaterial({ color: 0xc0c0c0 });
+
+        const materials = [
+          grassMaterial,
+          stoneMaterial,
+          dirtMaterial,
+          diamondMaterial,
+          goldMaterial,
+          ironMaterial,
+        ];
+
+        // Create floating blocks
+        for (let i = 0; i < 80; i++) {
+          const geometry = new THREE.BoxGeometry(4, 4, 4);
+          const material =
+            materials[Math.floor(Math.random() * materials.length)];
+          const block = new THREE.Mesh(geometry, material);
+
+          block.position.set(
+            (Math.random() - 0.5) * 300,
+            (Math.random() - 0.5) * 150,
+            (Math.random() - 0.5) * 300
+          );
+
+          block.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+          );
+
+          block.castShadow = true;
+          block.receiveShadow = true;
+
+          scene.add(block);
+          blocks.push(block);
+
+          // Animate each block
+          gsap.to(block.rotation, {
+            x: block.rotation.x + Math.PI * 4,
+            y: block.rotation.y + Math.PI * 4,
+            z: block.rotation.z + Math.PI * 4,
+            duration: 15 + Math.random() * 10,
+            repeat: -1,
+            ease: 'none',
+          });
+
+          gsap.to(block.position, {
+            y: block.position.y + (Math.random() - 0.5) * 100,
+            duration: 8 + Math.random() * 8,
+            repeat: -1,
+            yoyo: true,
+            ease: 'power2.inOut',
+          });
+
+          // Random scale animation
+          gsap.to(block.scale, {
+            x: 0.5 + Math.random() * 1.5,
+            y: 0.5 + Math.random() * 1.5,
+            z: 0.5 + Math.random() * 1.5,
+            duration: 5 + Math.random() * 5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'power2.inOut',
+          });
+        }
+
+        // Create Minecraft-style terrain
+        createTerrain();
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(100, 100, 50);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        camera.position.set(0, 30, 80);
+        animate();
+      }
+
+      function createTerrain() {
+        // Create a simple terrain with blocks
+        for (let x = -50; x <= 50; x += 8) {
+          for (let z = -50; z <= 50; z += 8) {
+            const height = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 10;
+
+            // Grass blocks
+            const grassGeometry = new THREE.BoxGeometry(4, 4, 4);
+            const grassMaterial = new THREE.MeshLambertMaterial({
+              color: 0x32cd32,
+            });
+            const grassBlock = new THREE.Mesh(grassGeometry, grassMaterial);
+            grassBlock.position.set(x, height - 60, z);
+            scene.add(grassBlock);
+
+            // Dirt blocks below
+            for (let i = 1; i <= 3; i++) {
+              const dirtGeometry = new THREE.BoxGeometry(4, 4, 4);
+              const dirtMaterial = new THREE.MeshLambertMaterial({
+                color: 0x8b4513,
+              });
+              const dirtBlock = new THREE.Mesh(dirtGeometry, dirtMaterial);
+              dirtBlock.position.set(x, height - 60 - i * 4, z);
+              scene.add(dirtBlock);
+            }
+          }
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Mouse interaction
+        camera.position.x += (mouseXNorm * 30 - camera.position.x) * 0.05;
+        camera.position.y += (-mouseYNorm * 20 + 30 - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+
+        // Animate some blocks randomly
+        blocks.forEach((block, index) => {
+          if (Math.random() < 0.01) {
+            gsap.to(block.position, {
+              x: block.position.x + (Math.random() - 0.5) * 20,
+              duration: 2,
+              ease: 'power2.inOut',
+            });
+          }
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      // Mouse interaction for 3D scene
+      document.addEventListener('mousemove', (event) => {
+        mouseXNorm = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseYNorm = -(event.clientY / window.innerHeight) * 2 + 1;
+      });
+
+      // Create falling block particles
+      function createBlockParticles() {
+        for (let i = 0; i < 15; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'block-particle';
+
+          const colors = [
+            '#32CD32',
+            '#808080',
+            '#8B4513',
+            '#FFD700',
+            '#FF6347',
+            '#00FFFF',
+          ];
+          const blockTypes = ['⬛', '🟫', '🟩', '🟨', '🟦', '🟪'];
+
+          particle.style.background =
+            colors[Math.floor(Math.random() * colors.length)];
+          particle.innerHTML =
+            blockTypes[Math.floor(Math.random() * blockTypes.length)];
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 10 + 's';
+          particle.style.animationDuration = 8 + Math.random() * 4 + 's';
+          particle.style.fontSize = '16px';
+          particle.style.color = '#fff';
+          particle.style.display = 'flex';
+          particle.style.alignItems = 'center';
+          particle.style.justifyContent = 'center';
+
+          document.body.appendChild(particle);
+
+          // Remove particle after animation
+          setTimeout(() => {
+            if (particle.parentNode) {
+              particle.parentNode.removeChild(particle);
+            }
+          }, 12000);
+        }
+      }
+
+      // Smooth scrolling
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            gsap.to(window, {
+              duration: 2,
+              scrollTo: target,
+              ease: 'power2.inOut',
+            });
+          }
+        });
+      });
+
+      // Add click sound effects
+      function playClickSound() {
+        try {
+          const audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(
+            400,
+            audioContext.currentTime + 0.1
+          );
+
+          gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + 0.1
+          );
+
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.1);
+        } catch (e) {
+          // Fallback if audio context fails
+        }
+      }
+
+      // Add click events to interactive elements
+      document
+        .querySelectorAll('.inventory-slot, .cta-button, .nav-links a')
+        .forEach((element) => {
+          element.addEventListener('click', playClickSound);
+        });
+
+      // Animate stats numbers
+      function animateStats() {
+        const stats = [
+          { element: 'blocksPlaced', target: 1234567 },
+          { element: 'distanceWalked', target: 42069 },
+          { element: 'monstersKilled', target: 9001 },
+          { element: 'itemsCrafted', target: 15678 },
+        ];
+
+        stats.forEach((stat) => {
+          const element = document.getElementById(stat.element);
+          if (element) {
+            gsap.fromTo(
+              element,
+              { innerHTML: 0 },
+              {
+                innerHTML: stat.target,
+                duration: 3,
+                ease: 'power2.out',
+                snap: { innerHTML: 1 },
+                onUpdate: function () {
+                  element.innerHTML = Math.floor(
+                    this.targets()[0].innerHTML
+                  ).toLocaleString();
+                },
+              }
+            );
+          }
+        });
+      }
+
+      // Intersection Observer for animations
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              if (entry.target.id === 'stats') {
+                animateStats();
+              }
+
+              // Animate feature cards
+              if (entry.target.classList.contains('feature-card')) {
+                gsap.fromTo(
+                  entry.target,
+                  { y: 50, opacity: 0 },
+                  { y: 0, opacity: 1, duration: 1, ease: 'power2.out' }
+                );
+              }
+
+              // Animate inventory slots
+              if (entry.target.classList.contains('inventory-slot')) {
+                gsap.fromTo(
+                  entry.target,
+                  { scale: 0, rotation: 180 },
+                  {
+                    scale: 1,
+                    rotation: 0,
+                    duration: 0.8,
+                    ease: 'back.out(1.7)',
+                  }
+                );
+              }
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+
+      // Observe elements for animation
+      document
+        .querySelectorAll('.feature-card, .inventory-slot, #stats')
+        .forEach((el) => {
+          observer.observe(el);
+        });
+
+      // Day/night cycle
+      function dayNightCycle() {
+        const indicator = document.querySelector('.day-night-indicator');
+        const body = document.body;
+
+        setInterval(() => {
+          if (indicator.innerHTML === '☀️') {
+            indicator.innerHTML = '🌙';
+            body.style.background =
+              'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+          } else {
+            indicator.innerHTML = '☀️';
+            body.style.background =
+              'linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #8B4513 100%)';
+          }
+        }, 10000);
+      }
+
+      // Window resize handler
+      window.addEventListener('resize', () => {
+        if (camera && renderer) {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+      });
+
+      // Add parallax effect
+      window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector('#three-container');
+        if (parallax) {
+          parallax.style.transform = `translateY(${scrolled * 0.3}px)`;
+        }
+
+        // Parallax clouds
+        document.querySelectorAll('.cloud').forEach((cloud, index) => {
+          const speed = 0.1 + index * 0.05;
+          cloud.style.transform = `translateY(${scrolled * speed}px)`;
+        });
+      });
+
+      // Inventory slot interactions
+      document.querySelectorAll('.inventory-slot').forEach((slot) => {
+        slot.addEventListener('mouseenter', () => {
+          gsap.to(slot, { scale: 1.2, duration: 0.3, ease: 'power2.out' });
+        });
+
+        slot.addEventListener('mouseleave', () => {
+          gsap.to(slot, { scale: 1, duration: 0.3, ease: 'power2.out' });
+        });
+
+        slot.addEventListener('click', () => {
+          gsap.to(slot, {
+            rotation: 360,
+            scale: 1.3,
+            duration: 0.8,
+            ease: 'back.out(1.7)',
+            onComplete: () => {
+              gsap.set(slot, { rotation: 0, scale: 1 });
+            },
+          });
+        });
+      });
+
+      // Initialize everything
+      window.addEventListener('load', () => {
+        // Remove loading screen
+        setTimeout(() => {
+          document.getElementById('loadingScreen').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+          }, 1000);
+        }, 3000);
+
+        // Initialize 3D scene
+        initThree();
+
+        // Start particle generation
+        createBlockParticles();
+        setInterval(createBlockParticles, 8000);
+
+        // Start day/night cycle
+        dayNightCycle();
+
+        // Add random block breaking sound effects
+        setInterval(() => {
+          if (Math.random() < 0.1) {
+            playClickSound();
+          }
+        }, 5000);
+
+        // Random screen shake for mining effect
+        setInterval(() => {
+          if (Math.random() < 0.05) {
+            gsap.to(document.body, {
+              x: Math.random() * 4 - 2,
+              y: Math.random() * 4 - 2,
+              duration: 0.1,
+              ease: 'power2.out',
+              onComplete: () => {
+                gsap.set(document.body, { x: 0, y: 0 });
+              },
+            });
+          }
+        }, 3000);
+      });
+
+      // Easter egg: Konami code
+      let konamiCode = [];
+      const correctCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up Up Down Down Left Right Left Right B A
+
+      document.addEventListener('keydown', (e) => {
+        konamiCode.push(e.keyCode);
+        if (konamiCode.length > correctCode.length) {
+          konamiCode.shift();
+        }
+
+        if (
+          konamiCode.length === correctCode.length &&
+          konamiCode.every((code, index) => code === correctCode[index])
+        ) {
+          // Easter egg activated!
+          alert(
+            '🎉 KONAMI CODE ACTIVATED! 🎉\nYou found the secret! All blocks are now DIAMONDS! 💎'
+          );
+
+          // Turn all blocks into diamonds
+          blocks.forEach((block) => {
+            block.material = new THREE.MeshLambertMaterial({ color: 0x00ffff });
+          });
+
+          // Add diamond particles
+          for (let i = 0; i < 50; i++) {
+            const diamond = document.createElement('div');
+            diamond.innerHTML = '💎';
+            diamond.style.position = 'fixed';
+            diamond.style.fontSize = '30px';
+            diamond.style.left = Math.random() * 100 + '%';
+            diamond.style.top = Math.random() * 100 + '%';
+            diamond.style.pointerEvents = 'none';
+            diamond.style.zIndex = '9999';
+            diamond.style.animation = 'sparkle 3s ease-in-out infinite';
+            document.body.appendChild(diamond);
+
+            setTimeout(() => {
+              if (diamond.parentNode) {
+                diamond.parentNode.removeChild(diamond);
+              }
+            }, 5000);
+          }
+
+          konamiCode = [];
+        }
+      });
+
+      // Add sparkle animation for easter egg
+      const style = document.createElement('style');
+      style.textContent = `
+            @keyframes sparkle {
+                0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+                50% { transform: scale(1.5) rotate(180deg); opacity: 0.7; }
+            }
+        `;
+      document.head.appendChild(style);
+    </script>
+  </body>
+</html>
