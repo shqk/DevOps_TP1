@@ -84,3 +84,36 @@ jobs:
           # Note: tags has to be all lower-case
           tags: ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-frontend:latest
           push: ${{ github.ref == 'refs/heads/main' }}
+
+  deploy:
+    needs: build-and-push-docker-image
+    runs-on: ubuntu-24.04
+    # Ne déploie que sur la branche main
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H nathan.danis.takima.cloud >> ~/.ssh/known_hosts
+
+      - name: Create vault password file
+        run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_pass
+
+      - name: Deploy with Ansible
+        working-directory: ansible
+        run: |
+          ansible-playbook -i inventories/setup.yml playbook.yml --vault-password-file ../.vault_pass
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: False
