@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/proxy
+- name: Launch proxy container
+  docker_container:
+    name: frontend
+    image: shqk/tp-devops-frontend:latest
+    state: started
+    restart_policy: always
+    networks:
+      - name: app-network
+    ports:
+      - '80:80'

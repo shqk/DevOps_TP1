@@ -1,0 +1,24 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Create database volume
+  docker_volume:
+    name: database-data
+  vars:
+    ansible_python_interpreter: /opt/docker_venv/bin/python
+# tasks file for roles/database
+- name: Launch database container
+  docker_container:
+    name: database
+    image: shqk/tp-devops-database:latest
+    state: started
+    restart_policy: always
+    networks:
+      - name: app-network
+    env:
+      POSTGRES_DB: '{{ db_name }}'
+      POSTGRES_USER: '{{ db_user }}'
+      POSTGRES_PASSWORD: '{{ db_password  }}'
+    ports:
+      - '5432:5432'
+    volumes:
+      - database-data:/var/lib/postgresql/data
