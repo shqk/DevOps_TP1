@@ -32,7 +32,7 @@ jobs:
             -Dsonar.projectKey=shqk_DevOps_TP1 \
             -Dsonar.organization=shqk \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             --file ./pom.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
